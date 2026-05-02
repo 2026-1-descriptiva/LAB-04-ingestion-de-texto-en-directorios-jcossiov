@@ -5,6 +5,11 @@
 Escriba el codigo que ejecute la accion solicitada en cada pregunta.
 """
 
+import os
+import zipfile
+import pandas as pd
+from pathlib import Path
+
 
 def pregunta_01():
     """
@@ -71,3 +76,27 @@ def pregunta_01():
 
 
     """
+
+    # Descomprimir el archivo zip
+    with zipfile.ZipFile('files/input.zip', 'r') as zip_ref:
+        zip_ref.extractall('files/')
+
+    # Crear la carpeta output si no existe
+    os.makedirs('files/output', exist_ok=True)
+
+    # Función para procesar train o test
+    def process_dataset(dataset_type):
+        data = []
+        base_path = Path('files/input') / dataset_type
+        for sentiment in ['negative', 'positive', 'neutral']:
+            sentiment_path = base_path / sentiment
+            for txt_file in sentiment_path.glob('*.txt'):
+                with open(txt_file, 'r', encoding='utf-8') as f:
+                    phrase = f.read().strip()
+                data.append({'phrase': phrase, 'target': sentiment})
+        df = pd.DataFrame(data)
+        df.to_csv(f'files/output/{dataset_type}_dataset.csv', index=False)
+
+    # Procesar train y test
+    process_dataset('train')
+    process_dataset('test')
